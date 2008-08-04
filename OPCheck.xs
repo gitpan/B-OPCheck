@@ -131,7 +131,7 @@ OP *OPCHECK_ck_subr(pTHX_ OP *o) {
             int i;
             for (i = 0; i <= av_len(subs); ++i) {
                 SV **sub = av_fetch(subs, i, 0);
-                if (SvOK(*sub)) {
+                if (sub && SvOK(*sub)) {
                     /* FIXME replace? before? after? */
                     OPCHECK_call_ck(aTHX_ *sub, o);
                 }
@@ -233,8 +233,7 @@ CODE:
         for ( i = av_len(av); i >= 0; i-- ) {
             SV **elem = av_fetch(av, i, 0);;
             if ( elem && *elem == perlsub ) {
-                av_store(av, i, &PL_sv_undef);
-                break;
+                av_delete(av, i, G_DISCARD);
             }
         }
 

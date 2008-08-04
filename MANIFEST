@@ -14,4 +14,3 @@ META.yml
 OPCheck.xs
 ppport.h
 t/entersub.t
-SIGNATURE                                Public-key signature (added by MakeMaker)

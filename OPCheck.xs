@@ -3,6 +3,7 @@
 #include "EXTERN.h"
 #include "perl.h"
 #include "embed.h"
+#include "BUtils.h"
 
 #include "XSUB.h"
 #define NEED_load_module
@@ -142,52 +143,6 @@ OP *OPCHECK_ck_subr(pTHX_ OP *o) {
     return o;
 }
 
-/* ============================================
-   from B.xs.  We need to find a way to share c functions
-*/
-
-static I32
-op_name_to_num(SV * name)
-{
-    dTHX;
-    char const *s;
-    char *wanted = SvPV_nolen(name);
-    int i =0;
-    int topop = OP_max;
-
-#ifdef PERL_CUSTOM_OPS
-    topop--;
-#endif
-
-    if (SvIOK(name) && SvIV(name) >= 0 && SvIV(name) < topop)
-        return SvIV(name);
-
-    for (s = PL_op_name[i]; s; s = PL_op_name[++i]) {
-        if (strEQ(s, wanted))
-            return i;
-    }
-#ifdef PERL_CUSTOM_OPS
-    if (PL_custom_op_names) {
-        HE* ent;
-        SV* value;
-        /* This is sort of a hv_exists, backwards */
-        (void)hv_iterinit(PL_custom_op_names);
-        while ((ent = hv_iternext(PL_custom_op_names))) {
-            if (strEQ(SvPV_nolen(hv_iterval(PL_custom_op_names,ent)),wanted))
-                return OP_CUSTOM;
-        }
-    }
-#endif
-
-    croak("No such op \"%s\"", SvPV_nolen(name));
-
-    return -1;
-}
-
-/* ============================================
-   end of code form B.  We need to find a way to share c functions
-*/
-
 MODULE = B::OPCheck                PACKAGE = B::OPCheck
 
 PROTOTYPES: ENABLE
@@ -200,11 +155,10 @@ Runops_Trace_load_B(aTHX);
 void
 enterscope(opname, mode, perlsub)
     SV *opname
-    SV *mode
     SV *perlsub
 PROTOTYPE: $$
 PREINIT:
-    I32 opnum = op_name_to_num(opname);
+    I32 opnum = BUtils_op_name_to_num(opname);
 CODE:
     if ( !PL_check_orig[opnum] ) {
         PL_check_orig[opnum] = PL_check[opnum];
@@ -221,14 +175,13 @@ CODE:
 void
 leavescope(opname, mode, perlsub)
     SV *opname
-    SV *mode
     SV *perlsub
 PROTOTYPE: $$
 PREINIT:
     AV *av;
-    I32 opnum = op_name_to_num(opname);
+    I32 opnum = BUtils_op_name_to_num(opname);
 CODE:
-    if (av = OPCHECK_subs[opnum]) {
+    if ((av = OPCHECK_subs[opnum])) {
         I32 i;
         for ( i = av_len(av); i >= 0; i-- ) {
             SV **elem = av_fetch(av, i, 0);;
@@ -253,7 +206,7 @@ END()
 AV *
 get_guts(opname)
     SV *opname
-    I32 opnum = op_name_to_num(opname);
+    I32 opnum = BUtils_op_name_to_num(opname);
 	CODE:
 {
     RETVAL = OPCHECK_subs[opnum];

@@ -4,9 +4,10 @@ author:
   - 'Chia-liang Kao <clkao@clkao.org>'
 build_requires:
   ExtUtils::MakeMaker: 6.42
+  Test::More: 0
 configure_requires:
-  B::Utils: 0
-  ExtUtils::Depends: 0
+  B::Utils: 0.08
+  ExtUtils::Depends: 0.302
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
 generated_by: 'Module::Install version 0.91'
@@ -20,10 +21,11 @@ no_index:
     - inc
     - t
 requires:
-  B::Utils: 0
+  B::Utils: 0.08
   Scope::Guard: 0
   XSLoader: 0
   perl: 5.8.0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.28
+  repository: git://github.com/rafl/b-opcheck.git
+version: 0.29
